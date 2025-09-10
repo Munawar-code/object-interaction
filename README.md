@@ -1,39 +1,29 @@
-# Photo Analysis (CLI, VS Code-Friendly)
+Photo Analysis: Human–Object Interaction
+   This project explores how people interact with objects in images.
+   It combines object detection with simple rule-based reasoning to go beyond just “what’s in the picture” and ask “what is happening between people and objects?”
 
-End-to-end HOI (Human–Object Interaction) pipeline built around YOLOv8.
-No Colab-specific code — runs locally via CLI scripts. Tested in VS Code.
+Why?
+   Most computer vision pipelines stop at detecting and labeling objects:
+   “Here’s a person, here’s a chair, here’s a phone.”
 
-## Install
+But in real life, the interesting part is the interaction:
+   1. Is the person holding the phone?
+   2. Are they sitting on the chair?
+   3. Are they riding the bicycle?
+   4. Are they looking at the laptop?
 
-```bash
-python -m venv .venv && source .venv/bin/activate  # on Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
+   Those relational cues give us context that’s useful in areas like surveillance, retail analytics, healthcare monitoring, sports analysis, and even social media insights.
 
-## Quickstart
+What the project does
+   Detects objects and humans in images using YOLOv8. Parses and separates humans from non-human objects. Pairs humans with nearby objects using geometry and confidence rules. Infers likely actions (holding, sitting, riding, looking, wearing, carrying) with a rule-based model.
 
-Assume your images live in `./data/preproc` and outputs go to `./out`:
+Outcomes
+   JSON files that don’t just list objects, but also describe who interacts with what, and how. A lightweight framework that can be extended with ML classifiers for more advanced HOI recognition. A step toward making computer vision outputs more interpretable and human-centric.
 
-```bash
-# 1) Detection -> hoi_json
-python scripts/detect.py --img_dir ./data/preproc --out_dir ./out/hoi_json --model yolov8x.pt --imgsz 640 --conf 0.25
+Key Features
+   Based on open-source YOLOv8 detection. No heavy training required — the action reasoning is rule-based. Works on any set of images, from everyday photos to specialized datasets. Modular design: detection → parsing → pairing → action inference.
 
-# 2) Parse -> parsed_json
-python scripts/parse.py --in_dir ./out/hoi_json --out_dir ./out/parsed_json
-
-# 3) Build pairs -> pairs_json_relaxed
-python scripts/pair.py --in_dir ./out/parsed_json --out_dir ./out/pairs_json_relaxed --obj_conf_min 0.15 --topk 10
-
-# 4) Infer actions -> hoi_actions_json
-python scripts/actions.py --in_dir ./out/pairs_json_relaxed --out_dir ./out/hoi_actions_json
-```
-
-## Notes
-- Auto-detects CPU/GPU; override with `--device cuda:0` or `--device cpu` if needed.
-- JSON files include a `meta` section for reproducibility.
-- For large folders, Ultralytics will internally batch predictions.
-
-## Repo layout
+Repo layout
 
 ```
 photo-analysis/
@@ -52,6 +42,3 @@ photo-analysis/
    ├─ pair.py
    └─ actions.py
 ```
-
-## License
-MIT
