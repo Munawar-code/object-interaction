@@ -1,24 +1,10 @@
 #!/usr/bin/env python3
-"""
-Photo Analysis (single-file CLI)
-- Pure Python (no Colab/Drive/magics)
-- VS Code friendly
-- Stages as subcommands: detect, parse, pair, actions, stats, preview (preview requires opencv & matplotlib).
-
-Example:
-  python photo_analysis.py detect  --img_dir ./data/preproc --out_dir ./out/hoi_json --model yolov8x.pt
-  python photo_analysis.py parse   --in_dir  ./out/hoi_json   --out_dir ./out/parsed_json
-  python photo_analysis.py pair    --in_dir  ./out/parsed_json --out_dir ./out/pairs_json_relaxed --obj_conf_min 0.15 --topk 10
-  python photo_analysis.py actions --in_dir  ./out/pairs_json_relaxed --out_dir ./out/hoi_actions_json
-  python photo_analysis.py stats   --det_dir ./out/hoi_json
-  python photo_analysis.py preview --pairs_dir ./out/pairs_json --img_root ./data/preproc
-"""
 from __future__ import annotations
 import argparse, json, math, sys, logging, random
 from pathlib import Path
 from typing import Iterable, List, Dict, Any, Tuple
 
-# ---------- Constants & helpers ----------
+# Constants & helpers 
 COCO_NAMES: List[str] = [
     "person","bicycle","car","motorcycle","airplane","bus","train","truck","boat","traffic light",
     "fire hydrant","stop sign","parking meter","bench","bird","cat","dog","horse","sheep","cow",
@@ -56,7 +42,7 @@ def centroid(b): return ((b[0]+b[2]) * 0.5, (b[1]+b[3]) * 0.5)
 def l2(p, q): return math.hypot(p[0]-q[0], p[1]-q[1])
 def union_box(a, b): return [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
 
-# ---------- Subcommand: detect ----------
+# Detection
 def cmd_detect(args):
     from ultralytics import YOLO
     try:
@@ -98,7 +84,7 @@ def cmd_detect(args):
             "model": args.model, "imgsz": args.imgsz, "conf": args.conf, "iou": args.iou
         }})
 
-# ---------- Subcommand: parse ----------
+# Parsing
 def cmd_parse(args):
     in_dir = Path(args.in_dir); out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -126,7 +112,7 @@ def cmd_parse(args):
             "meta": {"source_json": jf.name}
         })
 
-# ---------- Subcommand: pair ----------
+# Pairing
 def cmd_pair(args):
     in_dir = Path(args.in_dir); out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -171,7 +157,7 @@ def cmd_pair(args):
             "meta": {"source": data.get("meta", {}).get("source_json", jf.name)}
         })
 
-# ---------- Subcommand: actions ----------
+# Actions
 HOLDABLE = {
     "cup","bottle","cell phone","wine glass","bowl","fork","knife","spoon","banana","apple",
     "book","remote","mouse","keyboard","tennis racket","baseball bat","baseball glove",
@@ -248,7 +234,7 @@ def cmd_actions(args):
             "meta": {"source": jf.name, "method":"rule_based_v1"}
         })
 
-# ---------- Subcommand: stats ----------
+# Statistics
 def cmd_stats(args):
     from collections import Counter
     det_dir = Path(args.det_dir)
@@ -288,7 +274,7 @@ def cmd_stats(args):
     for k, v in obj_counter.most_common(20):
         print(f"{k:15s} {v}")
 
-# ---------- Subcommand: preview (optional) ----------
+# Preview
 def cmd_preview(args):
     try:
         import cv2, matplotlib.pyplot as plt
@@ -327,7 +313,7 @@ def cmd_preview(args):
         plt.title(f"{d['image']} | pairs={len(d.get('interactions', []))}")
         plt.imshow(img); plt.axis("off"); plt.show()
 
-# ---------- CLI ----------
+# CLI
 def build_parser():
     p = argparse.ArgumentParser(prog="photo_analysis.py", description="Human–Object Interaction pipeline (no Colab).")
     p.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging")
