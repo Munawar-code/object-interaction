@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "photo-analysis"
+version = "0.1.0"
+description = "Human–Object Interaction (HOI) analysis pipeline using YOLOv8"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Your Name"}]
+requires-python = ">=3.9"
+dependencies = []
